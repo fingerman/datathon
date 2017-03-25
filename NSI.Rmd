@@ -14,7 +14,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r warning = FALSE, message=FALSE, echo = FALSE}
 # load  data 
-# rm(list = ls())
+rm(list = ls())
 # setwd("C:/Users/computer/Desktop/data")
 library(Hmisc)
 library(fields)
@@ -23,17 +23,36 @@ library(devtools)  #source_gist(4676064)
 
 # Sys.setlocale("LC_CTYPE", "russian")
 # data08 = read.csv("EHIS_BG_2008_anon.csv")
-# save.image(file = "data08.RData")
+# save.image(file = "data.RData")
 # row.names(data08) <- NULL
 # data08 <- data08[,-(1)]  # drop unused index
 
-load("data08.RData")
-
+load("data.RData")
 # keep columns < 500 NA
 data <- data08[colSums(is.na(data08)) < 500]
 
-
 t(stats(data))  # check missings
+
+## rename variables
+
+data$age <- data$AgeGroup_85  # age
+data$edu <- data$HH07_gr      # education
+data$hshold <- data$HHACT_gr  # household size
+data$income <- data$IN05      # income
+data$smoker <- data$SK01      # smoker
+data$attBad <- data$SF04      # life attitude
+data$feelTired <- data$SF08   # general exhaustion
+
+table(data$HS01)  # delete 8, 9
+table(data$age)
+table(data$hshold)
+table(data$income)
+table(data$smoker)  # delete 9
+table(data$attBad)  # delete 8, 9
+table(data$feelTired)  # delete 8, 9
+
+# recode dependent variable
+
 
 corrs <- round(cor(data, use="pairwise.complete.obs"), 2)
 corrs
