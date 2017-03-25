@@ -1,0 +1,62 @@
+---
+title: "NSI"
+author: "Georgi Adamov, Kuzman Belev"
+date: "26 March 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+
+```{r warning = FALSE, message=FALSE, echo = FALSE}
+# load  data 
+# rm(list = ls())
+# setwd("C:/Users/computer/Desktop/data")
+library(Hmisc)
+library(fields)
+library(devtools)  #source_gist(4676064)
+
+
+# Sys.setlocale("LC_CTYPE", "russian")
+# data08 = read.csv("EHIS_BG_2008_anon.csv")
+# save.image(file = "data08.RData")
+# row.names(data08) <- NULL
+# data08 <- data08[,-(1)]  # drop unused index
+
+load("data08.RData")
+
+# keep columns < 500 NA
+data <- data08[colSums(is.na(data08)) < 500]
+
+
+t(stats(data))  # check missings
+
+corrs <- round(cor(data, use="pairwise.complete.obs"), 2)
+corrs
+
+
+
+
+```
+
+
+
+
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+
+## Including Plots
+
+You can also embed plots, for example:
+
+
+
