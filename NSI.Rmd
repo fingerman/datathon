@@ -1,14 +1,13 @@
 ---
-title: "NSI"
-author: "Georgi Adamov, Kuzman Belev"
-date: "26 March 2017"
+title: "Oaxaca Blinder Decomposition of the gender-based differences in the self-perceived health status"
+author: "Georgi Adamov,  (Team NSI)"
+date: "26 March 2017, Datathon, Sofia"
 output: html_document
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
-
 
 
 
@@ -19,45 +18,10 @@ rm(list = ls())
 library(Hmisc)
 library(fields)
 library(devtools)  #source_gist(4676064)
-
-
-# Sys.setlocale("LC_CTYPE", "russian")
-# data08 = read.csv("EHIS_BG_2008_anon.csv")
-# save.image(file = "data.RData")
-# row.names(data08) <- NULL
-# data08 <- data08[,-(1)]  # drop unused index
+library(oaxaca)
+library(stargazer)
 
 load("data.RData")
-# keep columns < 500 NA
-data <- data08[colSums(is.na(data08)) < 500]
-
-t(stats(data))  # check missings
-
-## rename variables
-
-data$age <- data$AgeGroup_85  # age
-data$edu <- data$HH07_gr      # education
-data$hshold <- data$HHACT_gr  # household size
-data$income <- data$IN05      # income
-data$smoker <- data$SK01      # smoker
-data$attBad <- data$SF04      # life attitude
-data$feelTired <- data$SF08   # general exhaustion
-
-table(data$HS01)  # delete 8, 9
-table(data$age)
-table(data$hshold)
-table(data$income)
-table(data$smoker)  # delete 9
-table(data$attBad)  # delete 8, 9
-table(data$feelTired)  # delete 8, 9
-
-# recode dependent variable
-
-
-corrs <- round(cor(data, use="pairwise.complete.obs"), 2)
-corrs
-
-
 
 
 ```
@@ -66,16 +30,90 @@ corrs
 
 
 
-## R Markdown
-
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
 
 
-## Including Plots
+##  Model Variables
 
-You can also embed plots, for example:
+`health` self asessment for health status, 1 = bad, 5 = best  
+`female` female = 1, male = 0  
+`age` grouped, 0 to 85+
+`edu` none = 0 ... tertiary = 6  
+`hshold` number of household members  
+`smoker` 1 = every day, 2 = sometimes, 3 = not  
+`attGood` feeling of unhappiness in last week: 1 - every day, 5 - not at all  
+`feelTired` feeling exhausted in last week: 1 - every day, 5 - not at all  
+
+data source: European Health Survey: Wave 2008, Bulgaria
+
+
+
+## Correlations
+
+```{r warning = FALSE, message=FALSE, echo = FALSE}
+
+round(cor(data[c("health", "femaleNum", "age", "income", "edu", "hshold", "smoker", "attGood", "feelTired")], 
+          use="pairwise.complete.obs"), 2)
+
+```
+
+
+
+
+
+## Oaxaca Blinder Decomposition
+
+
+The aim of the method is to decompose differences in the self-perceived health status, \(\mu\), across two groups. Here I will briefly describe how it works, applied to our example. Hence we have two groups - males \(m\) and females \(f\). The outcome variable \(Y\) is again the Self-perceived health status  and \(X\) is the vector of individuals' characteristics - income, age, smoking frequency and etc.,  that explain the level of health status. The estimators \(\beta_m\) and \(\beta_f\) contain the slope parameters and the intercept and are the returns of the respondents characteristics. So, now the question is how much of the mean outcome difference  
+\
+
+ 
+\ 
+																			\(R=E(Y_m)-E(Y_f)\)   
+\
+where \(E(Y)\)	stays for the expected value of the dependent variable is due to gender differences in the predictors. According to the methodology  of Oaxaca(1973) and Blinder (1973) the decomposition equation can be written as:\
+\
+
+          \(R=[E(X_m)-E(X_f)]'\beta_f + E(X_m)'(\beta_m - \beta_f) + [E(X_m)-E(X_f)]'(\beta_m - \beta_f)   \)
+\
+\
+This is a three-fold decomposition. That means that the outcome differences are divided into three parts: 
+\
+        \(R=E+C+I\)  
+        \
+The first term  
+\
+   \(E = [E(X_m)-E(X_f)]'\beta_f\) 
+   
+\
+represents the part of the health differential that is due to respondent's characteristics. Those are the differences between genders in the predictors - the endowments effect. The second summand  
+\
+
+ \(C = E(X_m)'(\beta_m - \beta_f)\) 
+ 
+\
+reflects the contribution of differences in the coefficients (including differences in the intercept), which accounts for the differences in the estimated returns to men's and women's characteristics. And the third component \
+
+ \(I = [E(X_m)-E(X_f)]'(\beta_m - \beta_f)\)   
+\
+is an interaction terms, which allows to account for the fact, that differences in endowments and coefficients between men and women exist simultaneously. If male and women have equal health self-perceptions for their characteristics, than the second and the third part will be zero and wage discrepancies between genders will be explained just by the difference in endowments. The measure of uncertainty for the decomposition estimates provided are bootstrapped standard errors based on 100 sampling replicates. 
+
+\indent The decomposition technique presented above is formulated from the viewpoint of females.  Hence differences in endowments and coefficients are weighted by the self-perceived health coefficients of women. Of course, this equation can be expressed also from the viewpoint of males. The findings of the three-fold Blinder-Oaxaca counterfactual decomposition are presented in the Graph below. 
+
+
+
+
+
+```{r warning = FALSE, message=FALSE, echo = FALSE}
+
+fit <- oaxaca(logHealth ~ age + income + edu +hshold + smoker + attGood + feelTired | female, data = data, R = 100)
+
+fit$y
+fit$threefold
+
+
+plot(fit)
+
+```
 
 
 
